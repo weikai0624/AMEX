@@ -1,0 +1,34 @@
+[
+    {
+        "place":"晶華",
+        "discount":[
+            {
+                "discount_type":"餐飲",
+                "href":""
+            },
+            {
+                "discount_type":"住宿",
+                "href":""
+            }
+        ],
+        "position":{
+            
+            "longitude": "123", 
+            "latitude": "123"
+        }
+    },
+    {
+        "place":"君悅",
+        "discount":[
+            {
+                "discount_type":"餐飲",
+                "href":"offer123"
+            }
+        ],
+        "position":{
+            
+            "longitude": "123", 
+            "latitude": "123"
+        }
+    }
+]
