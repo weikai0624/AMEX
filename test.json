@@ -1,34 +1,26 @@
 [
     {
-        "place":"晶華",
-        "discount":[
-            {
-                "discount_type":"餐飲",
-                "href":""
-            },
-            {
-                "discount_type":"住宿",
-                "href":""
-            }
-        ],
-        "position":{
-            
-            "longitude": "123", 
-            "latitude": "123"
-        }
+      "place": "胡同燒肉",
+      "discount_type": "美食饗味",
+      "discount_url": "https://www.amexcards.com.tw/benefit/esavvy/detail.aspx?card=3&offer=540",
+      "place_web_url": "",
+      "phone": "",
+      "address": ""
     },
     {
-        "place":"君悅",
-        "discount":[
-            {
-                "discount_type":"餐飲",
-                "href":"offer123"
-            }
-        ],
-        "position":{
-            
-            "longitude": "123", 
-            "latitude": "123"
-        }
+      "place": "胡同燒肉夜食(胡同1號店)",
+      "discount_type": "美食饗味",
+      "discount_url": "https://www.amexcards.com.tw/benefit/esavvy/detail.aspx?card=3&offer=540",
+      "place_web_url": "",
+      "phone": "(02)2776-1575",
+      "address": "台北市敦化南路一段161巷17號"
+    },
+    {
+      "place": "古月同燒肉夜食(胡同2號店)",
+      "discount_type": "美食饗味",
+      "discount_url": "https://www.amexcards.com.tw/benefit/esavvy/detail.aspx?card=3&offer=540",
+      "place_web_url": "",
+      "phone": "(02)2570-0373",
+      "address": "台北市市民大道四段139號"
     }
 ]
