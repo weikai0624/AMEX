@@ -19,7 +19,7 @@ from django.views.generic.base import RedirectView
 from map import views
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/map/') ),
+    path('', RedirectView.as_view(url='/admin/') ),
     path('admin/', admin.site.urls),
-    path('map/', views.show_map, name='map')
+    path('map/create/', views.create_map, name='createmap')
 ]
