@@ -17,9 +17,11 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic.base import RedirectView
 from map import views
+from map import show_folium_map
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/admin/') ),
+    path('', RedirectView.as_view(url='/map/show/') ),
     path('admin/', admin.site.urls),
-    path('map/create/', views.create_map, name='createmap')
+    path('map/show/', show_folium_map.create_folium_map, name='show_map'),
+    path('map/create/', views.create_map, name='create_map')
 ]
