@@ -12,16 +12,27 @@ import traceback
 import requests
 from copy import deepcopy
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, parse_qsl
+from urllib.parse import urlparse, parse_qsl, quote
 
 
 
 def replace_space(string):
     return string.replace(" ","").replace("\r", "").replace("\n", "")
 
+def find_google_map_url(place, address):
+    base_google_search_url = "https://www.google.com/maps/place?q="
+    place_quote =  quote(place.encode('utf8'))
+    address_quote = quote(address.encode('utf8'))
+    query_quote = quote( place_quote + " " +address_quote)
+    return base_google_search_url+query_quote
+
 def add_coordinate(discount_dict_list):
     base_google_search_url = "https://www.google.com/maps/place?q="
+    map_list_dir = os.listdir(os.path.join("D:\\AMEX\\", "googleMAP")) 
+    already = [ i.split('.json')[0] for i in map_list_dir ] 
     for one in discount_dict_list:
+        if one['place'] in already:
+            continue
         try:
             second = random.randint(6,20)
             print(second)
@@ -45,16 +56,20 @@ def add_coordinate(discount_dict_list):
                 "longitude":longitude,
                 "latitude": latitude
             })
+            oneplace=one['place']
+            show_map_json_path = os.path.join("D:\\AMEX\\", "googleMAP", f'{oneplace}.json')
+            # show_map_json = os.path.join(settings.BASE_DIR, "googleMAP", f'{oneplace}.json')
+            with open (file=show_map_json_path, mode='w', encoding="UTF-8") as F:
+                json.dump( one, F, indent=4)
         except:
             print("place: " ,one.get('place',''))
             print(traceback.format_exc())
+        
     return discount_dict_list
 
 def create_map(request):
     base_url = "https://www.amexcards.com.tw/benefit/esavvy/"
     r = requests.get("https://www.amexcards.com.tw/benefit/esavvy/list.aspx?card=3")
-    # r = requests.get("https://www.amexcards.com.tw/benefit/esavvy/detail.aspx?card=3&offer=558")
-
     soup = BeautifulSoup(r.text, "html.parser")
     discount_dict_list = []
     select_discount_type = soup.select("div.card")
@@ -90,9 +105,10 @@ def create_map(request):
                         place = master_name
                 # place = master_name
                 detail_info_one = detail_info_list[index].select("div.detail__info-text")
+                phone = ""
                 address = ""
                 place_web_url = ""
-                phone = ""
+                google_map_url = ""
                 # 分析是地址or 網址or 電話
                 for i in detail_info_one :
                     label = i.find("label")
@@ -118,6 +134,7 @@ def create_map(request):
                 print("address: ",address)
                 print("place_web_url: ", place_web_url)
                 print("phone: ", phone)
+                # google_map_url = find_google_map_url(place,address)
                 one_place={
                     "place":place,
                     "discount_type": discount_type,
@@ -131,18 +148,11 @@ def create_map(request):
                 discount_dict_list.append(one_place)
     
 
-    show_map_json_path = os.path.join("D:\\AMEX\\", 'discount_dict_list_.json')
-    # show_map_json = os.path.join(settings.BASE_DIR, 'AMEX_discount_dict_list.json')
+    # show_map_json_path = os.path.join("D:\\AMEX\\", 'discount_dict_list_.json')
+    show_map_json_path = os.path.join(settings.BASE_DIR, 'AMEX_discount_dict_list.json')
     with open (file=show_map_json_path, mode='w', encoding="UTF-8") as F:
         json.dump( discount_dict_list, F, indent=4)
 
     discount_dict_list_add_coordinate = add_coordinate(discount_dict_list)
-    show_map_json_path = os.path.join("D:\\AMEX\\", 'AMEX_discount_dict_list.json')
-    # show_map_json = os.path.join(settings.BASE_DIR, 'discount_dict_list_add_coordinate.json')
-    with open (file=show_map_json_path, mode='w', encoding="UTF-8") as F:
-        json.dump( discount_dict_list_add_coordinate, F, indent=4)
 
-    # return JsonResponse(discount_dict_list, safe=False)
-
-
-create_map('')
+    return JsonResponse(discount_dict_list, safe=False)
