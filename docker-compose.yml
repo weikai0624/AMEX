@@ -1,0 +1,31 @@
+services:
+    amex_web:
+        build: .
+        restart: always
+        command: gunicorn --bind :8000 --workers 2 AMEX.wsgi
+        volumes:
+            - .:/AMEX
+        ports:
+            - 8000:8000
+        environment:
+            - DB_NAME=postgres
+            - DB_USERNAME=username
+            - DB_PASSWORD=password
+            - DB_HOST=amex_db
+            - DB_PORT=5432
+        depends_on:
+            - amex_db
+    amex_db:
+        image: postgres:latest
+        restart: always
+        volumes:
+            - pg_data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_NAME=postgres
+            - POSTGRES_USER=username
+            - POSTGRES_PASSWORD=password
+            - POSTGRES_HOST=db
+        ports:
+            - 5432:5432
+volumes:
+    pg_data:
