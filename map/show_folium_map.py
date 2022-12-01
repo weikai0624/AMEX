@@ -5,35 +5,33 @@ import folium
 from urllib.parse import urlparse, parse_qsl, quote
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
+from django.conf import settings
 
 def find_google_map_url(place, address):
     base_google_search_url = "https://www.google.com/maps/place?q="
     place_quote =  quote(place.encode('utf8'))
-    # address_quote = quote(address.encode('utf8'))
-    # query_quote = quote( place_quote + " " +address_quote)
-
-    # place_quote =  place
     address_quote = address
     query_quote = place_quote + " " +address_quote
     return base_google_search_url+query_quote
 
 def create_folium_map(request):
     data = []
-    for file in os.listdir("D:\\AMEX\\googleMAP"):
-        with open(os.path.join("D:\\AMEX\\googleMAP", file), 'r', encoding='utf8') as F:
+    # show_map_json_path = os.path.join("D:\\AMEX\\",'map' ,'discount_json')
+    show_map_json_path = os.path.join(settings.BASE_DIR,'map' ,'discount_json')
+    for file in os.listdir(show_map_json_path):
+        with open(os.path.join(show_map_json_path, file), 'r', encoding='utf8') as F:
             data.append( json.load(F) )
 
     discount_type_set = set([i['discount_type'] for i in data])
 
     feature_group_map = { i: folium.FeatureGroup(name=i) for i in discount_type_set }
-    print(feature_group_map.keys())
     icon_group_map = {
         "美食饗味":{
                 'color':'red',
                 'icon': 'heart'
             },
         "買一晚送一晚":{
-                'color':'yellow',
+                'color':'lightgreen',
                 'icon': 'hotel'
             },
         "住一晚優惠價":{
@@ -45,7 +43,6 @@ def create_folium_map(request):
                 'icon': 'shopping-cart'
             },
     }
-
     folium_map = folium.Map(location=[25.04337438, 121.52811992],attr='AMEXdata',zoom_start=12)
     
     for one in data:
@@ -53,7 +50,9 @@ def create_folium_map(request):
         address = one['address']
         discount_type = one['discount_type']
         discount_url = one['discount_url']
-        google_map = find_google_map_url(place, address)
+        # 預設為地址搜尋, 如果有詳細店家 google map 地圖請手動更新
+        google_map = one.get('google_map_url', find_google_map_url('',one['address']) )
+        # google_map = find_google_map_url(place, address)
         icon_style=icon_group_map[discount_type]
         iframe = folium.IFrame(f'\
             <p>店家: {place}<p/>\
@@ -63,7 +62,6 @@ def create_folium_map(request):
             <p>地圖搜尋:<a href="{google_map}" target="_blank"> 點擊連結至Google 地圖 </a><p/>\
             <p><p/>\
             <p>實際優惠及詳情請依美國運通卡官方為主<p/>\
-            <i class="fa-solid fa-egg"></i>\
             ')
         popup = folium.Popup(iframe, min_width=300, max_width=300)
 
@@ -78,8 +76,8 @@ def create_folium_map(request):
         j.add_to(folium_map)
     folium.LayerControl(title="CREATE").add_to(folium_map)
 
-    # folium_map.save("index.html")
-    # return render(request, 'index.html')
+    folium_map.save("index.html")
+
     return HttpResponse(folium_map._repr_html_())
 
 

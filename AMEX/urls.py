@@ -23,5 +23,6 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/map/show/') ),
     path('admin/', admin.site.urls),
     path('map/show/', show_folium_map.create_folium_map, name='show_map'),
-    path('map/create/', views.create_map, name='create_map')
+    path('map/create/', views.create_data, name='create_data'),
+    path('map/create/coordinate/', views.create_coordinate_data, name='.create_coordinate_data')
 ]

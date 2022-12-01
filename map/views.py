@@ -22,52 +22,11 @@ def replace_space(string):
 def find_google_map_url(place, address):
     base_google_search_url = "https://www.google.com/maps/place?q="
     place_quote =  quote(place.encode('utf8'))
-    address_quote = quote(address.encode('utf8'))
-    query_quote = quote( place_quote + " " +address_quote)
+    address_quote = address
+    query_quote = place_quote + " " +address_quote
     return base_google_search_url+query_quote
 
-def add_coordinate(discount_dict_list):
-    base_google_search_url = "https://www.google.com/maps/place?q="
-    map_list_dir = os.listdir(os.path.join("D:\\AMEX\\", "googleMAP")) 
-    already = [ i.split('.json')[0] for i in map_list_dir ] 
-    for one in discount_dict_list:
-        if one['place'] in already:
-            continue
-        try:
-            second = random.randint(6,20)
-            print(second)
-            time.sleep(second)
-            address = one.get('address','')
-            if address == ''  :
-                print('Bye', one['place'], '  No address' )
-                continue
-            search_address_url = base_google_search_url+address
-            r_one_place_page = requests.get(search_address_url)
-            soup_page = BeautifulSoup(r_one_place_page.text, "html.parser")
-            soup_page_coordinate_string = soup_page.find('head').find('meta', attrs={"itemprop":"image"})['content']
-            map_url = urlparse(soup_page_coordinate_string)
-            query_dict=dict(parse_qsl(map_url.query))
-            lola_string = query_dict.get('center','')
-            if lola_string != '':
-                lalo_split = lola_string.split(',')
-                latitude = float(lalo_split[0])
-                longitude = float(lalo_split[1])
-            one.update({
-                "longitude":longitude,
-                "latitude": latitude
-            })
-            oneplace=one['place']
-            show_map_json_path = os.path.join("D:\\AMEX\\", "googleMAP", f'{oneplace}.json')
-            # show_map_json = os.path.join(settings.BASE_DIR, "googleMAP", f'{oneplace}.json')
-            with open (file=show_map_json_path, mode='w', encoding="UTF-8") as F:
-                json.dump( one, F, indent=4)
-        except:
-            print("place: " ,one.get('place',''))
-            print(traceback.format_exc())
-        
-    return discount_dict_list
-
-def create_map(request):
+def create_data(request):
     base_url = "https://www.amexcards.com.tw/benefit/esavvy/"
     r = requests.get("https://www.amexcards.com.tw/benefit/esavvy/list.aspx?card=3")
     soup = BeautifulSoup(r.text, "html.parser")
@@ -148,11 +107,67 @@ def create_map(request):
                 discount_dict_list.append(one_place)
     
 
-    # show_map_json_path = os.path.join("D:\\AMEX\\", 'discount_dict_list_.json')
-    show_map_json_path = os.path.join(settings.BASE_DIR, 'AMEX_discount_dict_list.json')
+    # show_map_json_path = os.path.join("D:\\AMEX\\", 'map', 'discount_dict_list.json')
+    show_map_json_path = os.path.join(settings.BASE_DIR,'map' ,'discount_dict_list.json')
     with open (file=show_map_json_path, mode='w', encoding="UTF-8") as F:
         json.dump( discount_dict_list, F, indent=4)
 
-    discount_dict_list_add_coordinate = add_coordinate(discount_dict_list)
-
     return JsonResponse(discount_dict_list, safe=False)
+
+def create_coordinate_data(request):
+    results = []
+    show_map_json_path = os.path.join(settings.BASE_DIR,'map' ,'discount_dict_list.json')
+    with open(os.path.join(show_map_json_path), 'r', encoding='utf8') as F:
+        discount_dict_list = json.load(F)
+    base_google_search_url = "https://www.google.com/maps/place?q="
+    data_json_dir = os.path.join(os.path.join(settings.BASE_DIR, "map", "discount_json"))
+    # data_json_dir = os.path.join("D:\\AMEX\\", "map", "discount_json")
+    map_list_dir = os.listdir(os.path.join(data_json_dir)) 
+    already = [ i.split('.json')[0] for i in map_list_dir ] 
+    for one in discount_dict_list:
+        print(one['place'], ' is already ??', one['place'] in already)
+        if one['place'] in already:
+            continue
+        try:
+            second = random.randint(6,20)
+            print(second)
+            time.sleep(second)
+            address = one.get('address','')
+            if address == ''  :
+                print('Bye', one['place'], '  No address' )
+                continue
+            search_address_url = base_google_search_url+address
+            r_one_place_page = requests.get(search_address_url)
+            soup_page = BeautifulSoup(r_one_place_page.text, "html.parser")
+            soup_page_coordinate_string = soup_page.find('head').find('meta', attrs={"itemprop":"image"})['content']
+            map_url = urlparse(soup_page_coordinate_string)
+            query_dict=dict(parse_qsl(map_url.query))
+            lola_string = query_dict.get('center','')
+            if lola_string != '':
+                lalo_split = lola_string.split(',')
+                latitude = float(lalo_split[0])
+                longitude = float(lalo_split[1])
+            one.update({
+                "longitude":longitude,
+                "latitude": latitude,
+                "google_map_url": find_google_map_url(one['place'], one['address'])
+            })
+            oneplace=one['place']
+            show_map_json_path = os.path.join(data_json_dir, f'{oneplace}.json')
+            with open (file=show_map_json_path, mode='w', encoding="UTF-8") as F:
+                json.dump( one, F, indent=4)
+            results.append({
+                "place": oneplace,
+                "message": "Success update longitude and latitude info, Please check google url by your self.",
+                "status": "success"
+            })
+        except:
+            print("place: " ,one.get('place',''))
+            print(traceback.format_exc())
+            results.append({
+                "place": oneplace,
+                "message": traceback.format_exc(),
+                "status": "error"
+            })
+            
+    return JsonResponse(results, safe=False)
