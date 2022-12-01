@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.conf import settings
+from map.models import DiscountData
 
 # Create your views here.
 
@@ -101,40 +102,25 @@ def create_data(request):
                     "place_web_url": place_web_url,
                     "phone": phone,
                     "address": address,
-                    "longitude":'',
-                    "latitude": ''
+                    "longitude": 0,
+                    "latitude": 0
                 }
                 discount_dict_list.append(one_place)
-    
-
-    # show_map_json_path = os.path.join("D:\\AMEX\\", 'map', 'discount_dict_list.json')
-    show_map_json_path = os.path.join(settings.BASE_DIR,'map' ,'discount_dict_list.json')
-    with open (file=show_map_json_path, mode='w', encoding="UTF-8") as F:
-        json.dump( discount_dict_list, F, indent=4)
-
+                DiscountData.objects.create(**one_place)
     return JsonResponse(discount_dict_list, safe=False)
 
 def create_coordinate_data(request):
     results = []
-    show_map_json_path = os.path.join(settings.BASE_DIR,'map' ,'discount_dict_list.json')
-    with open(os.path.join(show_map_json_path), 'r', encoding='utf8') as F:
-        discount_dict_list = json.load(F)
+    discount_dict_list_no_coordinate = DiscountData.objects.filter(longitude=0, latitude=0)
     base_google_search_url = "https://www.google.com/maps/place?q="
-    data_json_dir = os.path.join(os.path.join(settings.BASE_DIR, "map", "discount_json"))
-    # data_json_dir = os.path.join("D:\\AMEX\\", "map", "discount_json")
-    map_list_dir = os.listdir(os.path.join(data_json_dir)) 
-    already = [ i.split('.json')[0] for i in map_list_dir ] 
-    for one in discount_dict_list:
-        print(one['place'], ' is already ??', one['place'] in already)
-        if one['place'] in already:
-            continue
+    for one in discount_dict_list_no_coordinate:
         try:
-            second = random.randint(6,20)
+            second = random.randint(3,15)
             print(second)
             time.sleep(second)
-            address = one.get('address','')
+            address = one.address
             if address == ''  :
-                print('Bye', one['place'], '  No address' )
+                print('Bye', one.place, '  No address' )
                 continue
             search_address_url = base_google_search_url+address
             r_one_place_page = requests.get(search_address_url)
@@ -147,27 +133,56 @@ def create_coordinate_data(request):
                 lalo_split = lola_string.split(',')
                 latitude = float(lalo_split[0])
                 longitude = float(lalo_split[1])
-            one.update({
-                "longitude":longitude,
-                "latitude": latitude,
-                "google_map_url": find_google_map_url(one['place'], one['address'])
-            })
-            oneplace=one['place']
-            show_map_json_path = os.path.join(data_json_dir, f'{oneplace}.json')
-            with open (file=show_map_json_path, mode='w', encoding="UTF-8") as F:
-                json.dump( one, F, indent=4)
+            
+            one.longitude=longitude
+            one.latitude=latitude
+            one.google_map_url=find_google_map_url(one.place, one.address)
+
             results.append({
-                "place": oneplace,
+                "place": one.place,
                 "message": "Success update longitude and latitude info, Please check google url by your self.",
                 "status": "success"
             })
+            one.save()
+            print('succesful:', one.place)
         except:
-            print("place: " ,one.get('place',''))
+            print("place: " ,one.place)
             print(traceback.format_exc())
             results.append({
-                "place": oneplace,
+                "place": one.place,
                 "message": traceback.format_exc(),
                 "status": "error"
             })
             
+    return JsonResponse(results, safe=False)
+
+def create_coordinate_data_local(request):
+    results = []
+    data_json_dir = os.path.join(os.path.join(settings.BASE_DIR, "map", "discount_json"))
+    map_list_dir = os.listdir(os.path.join(data_json_dir)) 
+    base_google_search_url = "https://www.google.com/maps/place?q="
+
+    discount_dict_list_no_coordinate = DiscountData.objects.filter(longitude=0, latitude=0)
+    for one in discount_dict_list_no_coordinate:
+        local_file_name = one.place+'.json'
+        local_file_path = os.path.join(map_list_dir, local_file_name)
+        if os.path.exists(local_file_path):
+            with open(os.path.join(local_file_path), 'r', encoding='utf8') as F:
+                one_local_file_data = json.load(F)
+            one.longitude=one_local_file_data['longitude']
+            one.latitude=one_local_file_data['latitude']
+            one.google_map_url=find_google_map_url(one.place, one.address)
+
+            results.append({
+                "place": one.place,
+                "message": "Success update longitude and latitude info, Please check google url by your self.",
+                "status": "success"
+            })
+        else:
+            print("place: " ,one.place)
+            results.append({
+                "place": one.place,
+                "message": f"Not find {local_file_path} in local",
+                "status": "error"
+            })
     return JsonResponse(results, safe=False)

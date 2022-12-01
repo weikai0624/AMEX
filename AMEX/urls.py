@@ -24,5 +24,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('map/show/', show_folium_map.create_folium_map, name='show_map'),
     path('map/create/', views.create_data, name='create_data'),
-    path('map/create/coordinate/', views.create_coordinate_data, name='.create_coordinate_data')
+    path('map/create/coordinate/', views.create_coordinate_data, name='create_coordinate_data'),
+    path('map/create/coordinate/local', views.create_coordinate_data_local, name='create_coordinate_data_local')
 ]
