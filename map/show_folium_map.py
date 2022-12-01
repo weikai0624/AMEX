@@ -6,6 +6,7 @@ from urllib.parse import urlparse, parse_qsl, quote
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
+from map.models import DiscountData
 
 def find_google_map_url(place, address):
     base_google_search_url = "https://www.google.com/maps/place?q="
@@ -15,14 +16,9 @@ def find_google_map_url(place, address):
     return base_google_search_url+query_quote
 
 def create_folium_map(request):
-    data = []
-    # show_map_json_path = os.path.join("D:\\AMEX\\",'map' ,'discount_json')
-    show_map_json_path = os.path.join(settings.BASE_DIR,'map' ,'discount_json')
-    for file in os.listdir(show_map_json_path):
-        with open(os.path.join(show_map_json_path, file), 'r', encoding='utf8') as F:
-            data.append( json.load(F) )
+    data = DiscountData.objects.all()
 
-    discount_type_set = set([i['discount_type'] for i in data])
+    discount_type_set = set([i.discount_type for i in data])
 
     feature_group_map = { i: folium.FeatureGroup(name=i) for i in discount_type_set }
     icon_group_map = {
@@ -46,13 +42,19 @@ def create_folium_map(request):
     folium_map = folium.Map(location=[25.04337438, 121.52811992],attr='AMEXdata',zoom_start=12)
     
     for one in data:
-        place = one['place']
-        address = one['address']
-        discount_type = one['discount_type']
-        discount_url = one['discount_url']
+        if one.latitude == 0 or one.longitude == 0:
+            continue
+        place = one.place
+        address = one.address
+        discount_type = one.discount_type
+        discount_url = one.discount_url
+
         # 預設為地址搜尋, 如果有詳細店家 google map 地圖請手動更新
-        google_map = one.get('google_map_url', find_google_map_url('',one['address']) )
-        # google_map = find_google_map_url(place, address)
+        if one.google_map_url == '' or one.google_map_url == None:
+            google_map = find_google_map_url(place, address)
+        else:
+            google_map = one.google_map_url
+
         icon_style=icon_group_map[discount_type]
         iframe = folium.IFrame(f'\
             <p>店家: {place}<p/>\
@@ -66,7 +68,7 @@ def create_folium_map(request):
         popup = folium.Popup(iframe, min_width=300, max_width=300)
 
         folium.Marker(
-            location=[one['latitude'], one['longitude']],
+            location=[one.latitude, one.longitude],
             popup=popup,
             tooltip=place,
             icon=folium.Icon(color=icon_style['color'], icon=icon_style['icon'], prefix='fa'),
