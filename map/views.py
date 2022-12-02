@@ -94,7 +94,7 @@ def create_data(request):
                 print("address: ",address)
                 print("place_web_url: ", place_web_url)
                 print("phone: ", phone)
-                # google_map_url = find_google_map_url(place,address)
+                google_map_url = find_google_map_url(place,address)
                 one_place={
                     "place":place,
                     "discount_type": discount_type,
@@ -169,9 +169,7 @@ def create_coordinate_data_local(request):
                 one_local_file_data = json.load(F)
             one.longitude=one_local_file_data['longitude']
             one.latitude=one_local_file_data['latitude']
-            
-            # one.google_map_url=find_google_map_url(one.place, one.address)
-
+            one.google_map_url=find_google_map_url(one.place, one.address)
             results.append({
                 "place": one.place,
                 "message": "Success update longitude and latitude info, Please check google url by your self.",

@@ -12,6 +12,6 @@ class DiscountData(models.Model):
     address = models.CharField(max_length=99999,null=True)
     longitude = models.FloatField(null=True)
     latitude = models.FloatField(null=True)
-    google_map_url = models.URLField(null=True)
+    google_map_url = models.CharField(max_length=99999,null=True)
     udpate_datetime = models.DateTimeField(auto_now=True)
     
