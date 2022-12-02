@@ -28,6 +28,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY','django-insecure-9r4xffeenj-hu6_komjcsx
 DEBUG = os.environ.get('DEBUG','True').lower() in [ True,'true', 't', 'True']
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS','*').split(',')
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS','').split(',')
 
 
 # Application definition
@@ -135,3 +136,4 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
