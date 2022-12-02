@@ -28,8 +28,25 @@ def find_google_map_url(place, address):
     return base_google_search_url+query_quote
 
 def create_data(request):
+    card_name_map={
+    '1': 'Centurion卡', 
+    '2': '簽帳白金卡', 
+    '3': '信用白金卡',
+    '4': '簽帳金卡', 
+    '6': '長榮航空簽帳白金卡',  
+    '7': '晶華珍饌信用白金卡', 
+    '8': '長榮航空簽帳金卡', 
+    '9': '尊榮會員簽帳金卡', 
+    '10': '商務金卡', 
+    '11': '信用金卡', 
+    '12': '簽帳卡', 
+    '13': '國泰航空信用卡', 
+    '14': '國泰航空尊尚信用卡', 
+    '16': '商務卡'
+    }
+    card = int( request.GET.get('card',3) )
     base_url = "https://www.amexcards.com.tw/benefit/esavvy/"
-    r = requests.get("https://www.amexcards.com.tw/benefit/esavvy/list.aspx?card=3")
+    r = requests.get(f"https://www.amexcards.com.tw/benefit/esavvy/list.aspx?card={card}")
     soup = BeautifulSoup(r.text, "html.parser")
     discount_dict_list = []
     select_discount_type = soup.select("div.card")
@@ -96,22 +113,27 @@ def create_data(request):
                 print("phone: ", phone)
                 google_map_url = find_google_map_url(place,address)
                 one_place={
-                    "place":place,
+                    "place": place,
+                    "card": card,
+                    "card_name": card_name_map[str(card)],
                     "discount_type": discount_type,
                     "discount_url": discount_url ,
                     "place_web_url": place_web_url,
                     "phone": phone,
-                    "address": address,
-                    "longitude": 0,
-                    "latitude": 0
+                    "address": address
                 }
                 discount_dict_list.append(one_place)
-                DiscountData.objects.create(**one_place)
+                # 為保留 上方oneplace完整性
+                _place = one_place.pop('place')
+                _card = one_place.pop('card')
+                # 優先搜尋place&card , 如有對應的則使用defaults update, 如無則 create !
+                one_data, created = DiscountData.objects.update_or_create(place=_place, card=_card, defaults=one_place)
     return JsonResponse(discount_dict_list, safe=False)
 
 def create_coordinate_data(request):
     results = []
-    discount_dict_list_no_coordinate = DiscountData.objects.filter(longitude=0, latitude=0)
+    card = int( request.GET.get('card',3) )
+    discount_dict_list_no_coordinate = DiscountData.objects.filter(longitude=None, latitude=None, card=card)
     base_google_search_url = "https://www.google.com/maps/place?q="
     for one in discount_dict_list_no_coordinate:
         try:
@@ -159,8 +181,8 @@ def create_coordinate_data(request):
 def create_coordinate_data_local(request):
     results = []
     data_json_dir = os.path.join(os.path.join(settings.BASE_DIR, "map", "discount_json"))
-
-    discount_dict_list_no_coordinate = DiscountData.objects.filter(longitude=0, latitude=0)
+    card = int( request.GET.get('card',3) )
+    discount_dict_list_no_coordinate = DiscountData.objects.filter(longitude=None, latitude=None, card=card)
     for one in discount_dict_list_no_coordinate:
         local_file_name = one.place+'.json'
         local_file_path = os.path.join(data_json_dir, local_file_name)
