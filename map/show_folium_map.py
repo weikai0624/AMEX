@@ -16,8 +16,8 @@ def find_google_map_url(place, address):
     return base_google_search_url+query_quote
 
 def create_folium_map(request):
-    data = DiscountData.objects.all()
-
+    card = int( request.GET.get('card',3) )
+    data = DiscountData.objects.filter(card=card)
     discount_type_set = set([i.discount_type for i in data])
 
     feature_group_map = { i: folium.FeatureGroup(name=i) for i in discount_type_set }
@@ -45,6 +45,7 @@ def create_folium_map(request):
         if one.latitude == 0 or one.longitude == 0:
             continue
         place = one.place
+        card_name = one.card_name
         address = one.address
         discount_type = one.discount_type
         discount_url = one.discount_url
@@ -59,6 +60,7 @@ def create_folium_map(request):
         iframe = folium.IFrame(f'\
             <p>店家: {place}<p/>\
             <p>地址: {address}<p/>\
+            <p>卡別: {card_name}<p/>\
             <p>優惠方案: {discount_type}<p/>\
             <p>優惠頁面: <a href="{discount_url}" target="_blank"> 點擊連結運通卡頁面連結 </a><p/>\
             <p>地圖搜尋:<a href="{google_map}" target="_blank"> 點擊連結至Google 地圖 </a><p/>\
@@ -67,6 +69,9 @@ def create_folium_map(request):
             ')
         popup = folium.Popup(iframe, min_width=300, max_width=300)
 
+        if one.longitude == None: one.longitude = 0
+        if one.latitude == None: one.latitude = 0
+    
         folium.Marker(
             location=[one.latitude, one.longitude],
             popup=popup,
