@@ -4,6 +4,8 @@ from datetime import datetime
 # Create your models here.
 
 class DiscountData(models.Model):
+    card = models.IntegerField(null=True)
+    card_name = models.CharField(max_length=99999,null=True)
     place = models.CharField(max_length=99999)
     discount_type = models.CharField(max_length=99999,null=True)
     discount_url = models.URLField()

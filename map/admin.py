@@ -1,13 +1,9 @@
 from django.contrib import admin
+from map.models import DiscountData
 
-# Register your models here.
-from django.apps import apps
-# Register your models here.
 
-models = apps.get_models()
+class DiscountDataAdmin(admin.ModelAdmin):
+    list_display = ('place', 'card_name','card', 'discount_type', 'address', 'google_map_url', 'udpate_datetime')
+    list_filter = ('card', 'card_name', 'place', 'udpate_datetime')
 
-for model in models:
-    try:
-        admin.site.register(model)
-    except admin.sites.AlreadyRegistered:
-        pass
+admin.site.register(DiscountData, DiscountDataAdmin)
