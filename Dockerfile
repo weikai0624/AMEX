@@ -7,4 +7,4 @@ COPY . /AMEX/
 
 RUN pip install -r requirements.txt
 
-RUN python manage.py migrate
+ENTRYPOINT [ "/bin/bash", "docker-entrypoint.sh" ]
