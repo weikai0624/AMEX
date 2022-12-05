@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY','django-insecure-9r4xffeenj-hu6_komjcsx
 DEBUG = os.environ.get('DEBUG','True').lower() in [ True,'true', 't', 'True']
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS','*').split(',')
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS','').split(',')
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS','http://127.0.0.1').split(',')
 
 
 # Application definition
@@ -131,6 +131,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
