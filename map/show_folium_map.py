@@ -83,7 +83,7 @@ def create_folium_map(request):
         j.add_to(folium_map)
     folium.LayerControl(title="CREATE").add_to(folium_map)
 
-    folium_map.save("index.html")
+    # folium_map.save("index.html")
 
     return HttpResponse(folium_map._repr_html_())
 
