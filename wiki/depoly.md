@@ -11,6 +11,7 @@ reference
 ### requirements
 
 1. [Flyctl](https://fly.io/docs/flyctl/installing/)
+1. [Get google map api key](wiki\google_api.md)
 
 ### Step
 1.  ```$ flyctl auth login```
@@ -98,6 +99,8 @@ reference
     ```$ flyctl secrets set DATABASE_URL='postgres://postgres:password@amex-map-db.internal:5432/postgres'```
 
     ```$ flyctl secrets set CELERY_BROKER_URL='redis://default:5babad3ee7f44ec8953dc84889ea1b02@fly-amex-map-redis.upstash.io'```
+
+    ```$ flyctl secrets set GOOGLE_MAP_API_KEY='GOOGLE_MAP_API_KEY'```
 
     ```$ fly secrets set SECRET_KEY='django-insecure-qmq4l#2)h9_!us=2^kw6n&rs$=-wbckvn=$k-2(asbcsf!mey2'```
 

@@ -4,6 +4,7 @@ from django.conf import settings
 from map.models import DiscountData
 from celery_task import tasks
 from celery.result import AsyncResult
+import googlemaps
 # Create your views here.
 
 import os
@@ -67,7 +68,7 @@ def create_data(request):
                         'task_id': AsyncResult(res.task_id).task_id
                     }
             tasks_list.append(one_task)
-    print(type(tasks_list))
+    # print(type(tasks_list))
     return JsonResponse(tasks_list, safe=False)
 
 def create_coordinate_data(request):
@@ -145,4 +146,42 @@ def create_coordinate_data_local(request):
                 "message": f"Not find {local_file_path} in local",
                 "status": "error"
             })
+    return JsonResponse(results, safe=False)
+
+def create_coordinate_data_google_api(request):
+    results = []
+    card = int( request.GET.get('card',3) )
+    discount_dict_list_no_coordinate = DiscountData.objects.filter(longitude=None, latitude=None, card=card)
+    gmaps = googlemaps.Client(key=settings.GOOGLE_MAP_API_KEY)
+    for one in discount_dict_list_no_coordinate:
+        try:
+            address = one.address
+            if address == ''  :
+                print('Bye', one.place, '  No address' )
+                continue
+            geocode_result = gmaps.geocode(address)
+            
+            latitude = geocode_result[0]['geometry']['location']['lat']
+            longitude = geocode_result[0]['geometry']['location']['lng']
+            
+            one.longitude=longitude
+            one.latitude=latitude
+            one.google_map_url=find_google_map_url(one.place, one.address)
+
+            results.append({
+                "place": one.place,
+                "message": "Success update longitude and latitude info, Please check google url by your self.",
+                "status": "success"
+            })
+            one.save()
+            print('succesful:', one.place)
+        except:
+            print("place: " ,one.place)
+            print(traceback.format_exc())
+            results.append({
+                "place": one.place,
+                "message": traceback.format_exc(),
+                "status": "error"
+            })
+            
     return JsonResponse(results, safe=False)

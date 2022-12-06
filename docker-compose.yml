@@ -8,6 +8,7 @@ services:
         ports:
             - 8000:8000
         environment:
+            - CELERY_BROKER_URL=redis://redis:6379
             - DB_NAME=postgres
             - DB_USERNAME=username
             - DB_PASSWORD=password
@@ -36,7 +37,6 @@ services:
         command: celery -A AMEX.celery worker --pool=solo -l info
         environment:
             - CELERY_BROKER_URL=redis://redis:6379
-            - CELERY_RESULT_BACKEND=redis://redis:6379
             - DB_NAME=postgres
             - DB_USERNAME=username
             - DB_PASSWORD=password

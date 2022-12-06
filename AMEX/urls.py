@@ -25,5 +25,6 @@ urlpatterns = [
     path('map/show/', show_folium_map.create_folium_map, name='show_map'),
     path('map/create/', views.create_data, name='create_data'),
     path('map/create/coordinate/', views.create_coordinate_data, name='create_coordinate_data'),
-    path('map/create/coordinate/local/', views.create_coordinate_data_local, name='create_coordinate_data_local')
+    path('map/create/coordinate/local/', views.create_coordinate_data_local, name='create_coordinate_data_local'),
+    path('map/create/coordinate/google/api/', views.create_coordinate_data_google_api, name='create_coordinate_data_google_api')
 ]
