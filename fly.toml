@@ -6,9 +6,12 @@ kill_timeout = 5
 
 [processes]
 web = "gunicorn --bind :8000 --workers 2 AMEX.wsgi"
+worker = "celery -A AMEX.celery worker --pool=solo -l info"
 
 [env]
   PORT = "8000"
+  ALLOWED_HOSTS="*"
+  CSRF_TRUSTED_ORIGINS="https://amex-map.fly.dev"
 
 [experimental]
   allowed_public_ports = []

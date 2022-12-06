@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'map'
+    'map',
+    'celery_task',
+    'django_celery_results'
 ]
 
 MIDDLEWARE = [
@@ -89,7 +91,7 @@ else:
             'USER':     os.environ.get('DB_USERNAME', 'username'),
             'PASSWORD': os.environ.get('DB_PASSWORD', 'password'),
             'HOST':     os.environ.get('DB_HOST', '127.0.0.1'),
-            'PORT':     os.environ.get('DB_PORT', '5432')
+            'PORT':     os.environ.get('DB_PORT', '5433')
         }
     }
 
@@ -138,3 +140,20 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Celery Configuration Options
+CELERY_TIMEZONE = "UTC"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost/')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'django-db')
+CELERY_CACHE_BACKEND = os.environ.get('CELERY_CACHE_BACKEND', 'default')
+
+# django setting.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    }
+}
