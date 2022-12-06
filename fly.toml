@@ -35,3 +35,7 @@ worker = "celery -A AMEX.celery worker --pool=solo -l info"
     hard_limit = 25
     soft_limit = 20
     type = "connections"
+
+[[statics]]
+  guest_path = "/"
+  url_prefix = "/static/"
