@@ -13,6 +13,7 @@ import json
 import random
 import traceback
 import requests
+from copy import deepcopy
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qsl, quote
 
