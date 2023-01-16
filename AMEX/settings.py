@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'map',
     'celery_task',
-    'django_celery_results'
+    'django_celery_results',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -160,3 +161,11 @@ CACHES = {
 }
 
 GOOGLE_MAP_API_KEY = os.environ.get('GOOGLE_MAP_API_KEY','')
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}

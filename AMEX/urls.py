@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.views.generic.base import RedirectView
 from map import views
 from map import show_folium_map
@@ -22,9 +22,5 @@ from map import show_folium_map
 urlpatterns = [
     path('', RedirectView.as_view(url='/map/show/') ),
     path('admin/', admin.site.urls),
-    path('map/show/', show_folium_map.create_folium_map, name='show_map'),
-    path('map/create/', views.create_data, name='create_data'),
-    path('map/create/coordinate/', views.create_coordinate_data, name='create_coordinate_data'),
-    path('map/create/coordinate/local/', views.create_coordinate_data_local, name='create_coordinate_data_local'),
-    path('map/create/coordinate/google/api/', views.create_coordinate_data_google_api, name='create_coordinate_data_google_api')
+    path('map/', include('map.urls'))
 ]
