@@ -78,6 +78,8 @@ def soup_store_info(s_string, master_name ,base_url, discount_type, discount_typ
                     oneplace_info.setdefault( "place_web_url", value)
                 elif "電話預訂" in key :
                     oneplace_info.setdefault( "phone", replace_space(value))
+                elif "電　　話" in key :
+                    oneplace_info.setdefault( "phone", replace_space(value))
                 elif "線上訂位":
                     oneplace_info.setdefault( "reserve_url", replace_space(value))
             else:
