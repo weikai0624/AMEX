@@ -2,7 +2,7 @@ from urllib.parse import quote
 from copy import deepcopy
 
 def replace_space(string):
-    return string.replace(" ","").replace("\r", "").replace("\n", "")
+    return string.replace(" ","").replace("\r", "").replace("\n", "").replace("\xa0", "")
 
 def find_google_map_url(place, address):
     base_google_search_url = "https://www.google.com/maps/place?q="

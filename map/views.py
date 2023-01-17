@@ -15,61 +15,52 @@ import traceback
 import requests
 from copy import deepcopy
 from bs4 import BeautifulSoup
+from common.common import find_google_map_url
 from urllib.parse import urlparse, parse_qsl, quote
 
-def find_google_map_url(place, address):
-    base_google_search_url = "https://www.google.com/maps/place?q="
-    place_quote =  quote(place.encode('utf8'))
-    address_quote = address
-    query_quote = place_quote + " " +address_quote
-    return base_google_search_url+query_quote
 
 def create_data(request):
     card_name_map={
-    '1': 'Centurion卡', 
-    '2': '簽帳白金卡', 
-    '3': '信用白金卡',
-    '4': '簽帳金卡', 
-    '6': '長榮航空簽帳白金卡',  
-    '7': '晶華珍饌信用白金卡', 
-    '8': '長榮航空簽帳金卡', 
-    '9': '尊榮會員簽帳金卡', 
-    '10': '商務金卡', 
-    '11': '信用金卡', 
-    '12': '簽帳卡', 
-    '13': '國泰航空信用卡', 
-    '14': '國泰航空尊尚信用卡', 
-    '16': '商務卡'
+    '3': {
+        'chinese':'信用白金卡',
+        'english':'grcc-platinum'
+        }
     }
-    card = int( request.GET.get('card',3) )
-    base_url = "https://www.amexcards.com.tw/benefit/esavvy/"
-    r = requests.get(f"https://www.amexcards.com.tw/benefit/esavvy/list.aspx?card={card}")
+    # card = int( request.GET.get('card',3) )
+    card = 3
+    card_name = card_name_map[str(card)]['chinese']
+    card_english_name = card_name_map[str(card)]['english']
+    base_url = "https://www.americanexpress.com"
+    r = requests.get(f"https://www.americanexpress.com/zh-tw/benefits/annual/{card_english_name}/")
     soup = BeautifulSoup(r.text, "html.parser")
+
     tasks_list = []
-    select_discount_type = soup.select("div.card")
+    select_discount_type = soup.select("div.image-wrap")
     discount_types_list = []
     ## 依照優惠方案分類
     for s in select_discount_type:
-        ## 優惠方案 
-        discount_type = s.find("a").text
+        # 優惠方案
+        href = s.find("a").get('href','')
+        discount_type = s.find("img").get('title','')
         discount_types_list.append(discount_type)
-        ## 地點
-        for o in s.select('li a'):
-            master_name = o.text
-            if master_name == "【因應疫情相關通知】":
-                continue
-            # if master_name != "胡同燒肉":
-            #     continue
-            href = o.get('href','')
-            discount_url = base_url+href
-            res=tasks.soup_page_info.delay(discount_url, master_name, card, card_name_map, discount_type)
+        discount_type_url = base_url+href
+        r_one_discount_type = requests.get(discount_type_url)
+        soup_page = BeautifulSoup(r_one_discount_type.text, "html.parser")
+        # 根據頁面中的店家進行分類
+        # https://www.americanexpress.com/zh-tw/benefits/annual/grcc-platinum/dining.html
+        store_info_list = soup_page.select("div.card")
+        keys = []
+        other_keys = []
+        for s in store_info_list:
+            master_name = s.select_one('h3').text.split(". ")[-1]
+            # 因tasks 不能使用bs4.element.Tag 直接傳輸, 所以先經過prettify 轉換成html 再由tasks去parse 一次
+            res = tasks.soup_store_info.delay(s.prettify(), master_name ,base_url, discount_type, discount_type_url, card, card_name, card_english_name)
             one_task = {
-                        'master_name': master_name,
-                        'discount_type': discount_type,
-                        'task_id': AsyncResult(res.task_id).task_id
-                    }
+                    'master_name': master_name,
+                    'discount_type': discount_type,
+                    'task_id': AsyncResult(res.task_id).task_id
+                }
             tasks_list.append(one_task)
-    # print(type(tasks_list))
     return JsonResponse(tasks_list, safe=False)
 
 def create_coordinate_data(request):
@@ -120,34 +111,6 @@ def create_coordinate_data(request):
             
     return JsonResponse(results, safe=False)
 
-def create_coordinate_data_local(request):
-    results = []
-    data_json_dir = os.path.join(os.path.join(settings.BASE_DIR, "map", "discount_json"))
-    card = int( request.GET.get('card',3) )
-    discount_dict_list_no_coordinate = DiscountData.objects.filter(longitude=None, latitude=None, card=card)
-    for one in discount_dict_list_no_coordinate:
-        local_file_name = one.place+'.json'
-        local_file_path = os.path.join(data_json_dir, local_file_name)
-        if os.path.exists(local_file_path):
-            with open(os.path.join(local_file_path), 'r', encoding='utf8') as F:
-                one_local_file_data = json.load(F)
-            one.longitude=one_local_file_data['longitude']
-            one.latitude=one_local_file_data['latitude']
-            one.google_map_url=find_google_map_url(one.place, one.address)
-            results.append({
-                "place": one.place,
-                "message": "Success update longitude and latitude info, Please check google url by your self.",
-                "status": "success"
-            })
-            one.save()
-        else:
-            print("place: " ,one.place)
-            results.append({
-                "place": one.place,
-                "message": f"Not find {local_file_path} in local",
-                "status": "error"
-            })
-    return JsonResponse(results, safe=False)
 
 def create_coordinate_data_google_api(request):
     results = []

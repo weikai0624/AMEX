@@ -10,7 +10,6 @@ urlpatterns = [
     path('show/', show_folium_map.create_folium_map, name='show_map'),
     path('create/', views.create_data, name='create_data'),
     path('create/coordinate/', views.create_coordinate_data, name='create_coordinate_data'),
-    path('create/coordinate/local/', views.create_coordinate_data_local, name='create_coordinate_data_local'),
     path('create/coordinate/google/api/', views.create_coordinate_data_google_api, name='create_coordinate_data_google_api')
 ]
 
