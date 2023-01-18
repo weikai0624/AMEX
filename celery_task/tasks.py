@@ -58,7 +58,7 @@ def soup_store_info(s_string, master_name ,base_url, discount_type, discount_typ
     # detail_info = detail_.find_all("p", text=re.compile("|".join(detail_info_string_list)))
     for o in detail_info:
         text = o.text
-        if o.get('style') != None:
+        if o.get('style') == "text-align: center;" and text == u'\xa0':
             if oneplace_info != {}:
                 one_data, created = create_info(oneplace_info, master_name, card, card_name, card_english_name, discount_type, discount_url)
                 all_place.append(master_name + "-" + oneplace_info.get("place",""))
